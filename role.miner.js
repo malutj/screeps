@@ -11,10 +11,8 @@ var roleMiner = {
                 var minerIsAssigned = false;
                 for ( var j = 0; j < minersInThisRoom.length; ++j )
                 {
-                    console.log ( minersInThisRoom[ j ].memory.container,' == ',  containers[ i ].id );
                     if ( minersInThisRoom[ j ].memory.container == containers[ i ].id )
                     {               
-                        console.log ( 'true' );
                         minerIsAssigned = true;
                         break;
                     }
@@ -24,7 +22,7 @@ var roleMiner = {
                 {
                     // THIS MEANS WE HAVE A CONTAINER THAT DOESN'T 
                     // HAVE AN ASSOCIATED MINER, SO WE'LL SPAWN ONE NOW
-                    spawnPoint.createCreep( [ WORK,WORK,WORK,WORK,WORK,MOVE ], 'miner'+Game.time.toString(), { role:'miner', status:'mining', container: containers[ i ].id } );
+                    spawnPoint.createCreep( [ WORK,WORK,WORK,WORK,WORK,MOVE], 'miner'+Game.time.toString(), { role:'miner', status:'mining', container: containers[ i ].id } );
                 }
             }
         }

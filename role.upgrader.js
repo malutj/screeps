@@ -45,7 +45,7 @@ var roleUpgrader = {
         {
             body = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
         }
-        else if ( energyAmount >= 800 && energyAmount < 1000 )
+        else if ( energyAmount >= 800 )//&& energyAmount < 1000 )
         {
             body = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
         }

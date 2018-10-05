@@ -37,7 +37,7 @@ var roleHarvester = {
         {
             body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
         }
-        else if ( energyAmount == 700 )
+        else if ( energyAmount >= 700 )
         {
             body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
         }
@@ -73,7 +73,7 @@ var roleHarvester = {
                 }
             }
 
-            var container = _.sortBy ( creep.room.find ( FIND_STRUCTURES, { filter : function(s) { return ( s.structureType == STRUCTURE_CONTAINER && s.store[ RESOURCE_ENERGY ] > 0 ) } } ), (s) => s.store[ RESOURCE_ENERGY ] );
+            var container = _.sortBy ( creep.room.find ( FIND_STRUCTURES, { filter : function(s) { return ( s.structureType == STRUCTURE_CONTAINER && s.store[ RESOURCE_ENERGY ] >= 50 ) } } ), (s) => s.store[ RESOURCE_ENERGY ] );
         
             if ( container.length )
             {
@@ -82,6 +82,15 @@ var roleHarvester = {
                     creep.moveTo ( container[ container.length - 1 ], {visualizePathStyle: {stroke: '#ffffff'}} );
                     return;
                 } 
+            }
+
+            if ( creep.room.storage )
+            {
+                if ( creep.withdraw ( creep.room.storage, RESOURCE_ENERGY ) == ERR_NOT_IN_RANGE )
+                {
+                    creep.moveTo ( creep.room.storage, {visualizePathStyle: {stroke: '#ffffff'}} );
+                    return;
+                }  
             }
 
             // IF WE HAVE AT LEAST ONE 'WORK' BODY PART, WE CAN TRY TO SOURCE ENERGY FROM A NODE

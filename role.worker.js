@@ -1,56 +1,58 @@
-var roleHarvester = {
+var roleWorker = {
 
     spawn: function ( spawnPoint )
     {
         var body;
-        var energyAmount = spawnPoint.room.energyCapacityAvailable;
+        //var energyAmount = spawnPoint.room.energyCapacityAvailable;
 
-        if ( energyAmount == 300 )
-        {
-            body = [WORK, CARRY, CARRY, MOVE, MOVE ];
-        }
-        else if ( energyAmount == 350 )
-        {
-            body = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 400 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 450 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 500 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 550 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 600 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 650 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 700 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount == 750 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
-        else if ( energyAmount >= 800 )
-        {
-            body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
+        // if ( energyAmount == 300 )
+        // {
+        //     body = [WORK, CARRY, CARRY, MOVE, MOVE ];
+        // }
+        // else if ( energyAmount == 350 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 400 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 450 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 500 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 550 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 600 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 650 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 700 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount == 750 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+        // }
+        // else if ( energyAmount >= 800 )
+        // {
+        //     body = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+        // }
 
-        spawnPoint.createCreep ( body, 'harvester'+Game.time.toString(), { role:'harvester' } );
+        body = [ CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE ];
+
+        spawnPoint.createCreep ( body, 'worker' + Game.time.toString ( ), { role: 'worker', homeRoomId: spawnPoint.room.id, currentState: 0 } );
     },
 
     /** @param {Creep} creep **/
@@ -118,13 +120,21 @@ var roleHarvester = {
         // THIS PERCENTAGE OF OUR TOTAL CARRY CAPACITY.
         const MAX_CURRENT_ENERGY_PCT_TO_GATHER = .50;
 
+        // MINIMUM AMOUNT OF ENERGY A CONTAINER MUST HAVE
+        // IN ORDER FOR US TO GATHER FROM IT
+        const MIN_CONTAINER_ENERGY_TO_GATHER = 50;
+
+        
+
 
         
         function TargetCanUseAnotherGatherer ( target )
         {
-            var workersInThisRoom = _.filter ( Game.creeps, function ( c ) { c.room === creep.room && c.role == WORKER && c.currentState == STATE.GATHERING } );
+            var workersInThisRoom = _.filter ( Game.creeps, function ( c ) { return c.room == homeRoom && c.memory.role == WORKER && c.memory.currentState == STATE.GATHERING && c.id != creep.id } );
             var remainingEnergy = ( target instanceof Resource ) ? target.amount : target.store[ RESOURCE_ENERGY ];
             var claimedEnergy = 0;
+
+            if ( remainingEnergy == 0) return false;
 
             for ( var i = 0; i < workersInThisRoom.length; ++i )
             {
@@ -134,23 +144,27 @@ var roleHarvester = {
                 }
             }
 
+            //console.log ( creep.name+':', target, 'has', remainingEnergy, ' : claimed', claimedEnergy);
+
             return  ( remainingEnergy - claimedEnergy >= creep.carryCapacity * MIN_DROPPED_RESOURCE_PCT );
         }
 
 
         function TargetCanUseAnotherTransporter ( target )
         {
-            var workersInThisRoom = _.filter ( Game.creeps, function ( c ) { c.room === creep.room && c.role == WORKER && c.currentState == STATE.TRANSFERRING } );
-            var neededEnergy = ( target instanceof StructureStorage ) ? target.storeCapacity - target.store[ RESOURCE_ENERGY ] : target.energyCapacity - target.energy;
+            var workersInThisRoom = _.filter ( Game.creeps, function ( c ) { return  c.room === homeRoom && c.memory.role == WORKER && c.memory.currentState == STATE.TRANSFERRING && c.id != creep.id } );
+            var neededEnergy = ( target instanceof StructureStorage ) ? target.storeCapacity - _.sum ( target.store ) : target.energyCapacity - target.energy;
             var promisedEnergy = 0;
 
             for ( var i = 0; i < workersInThisRoom.length; ++i )
             {
-                if ( workersInThisRoom[ i ].memory.target == target )
+                if ( workersInThisRoom[ i ].memory.currentTargetId == target.id )
                 {
-                    promisedEnergy += ( workersInThisRoom[ i ].carryCapacity - workersInThisRoom[ i ].carry[ RESOURCE_ENERGY ] );
+                    promisedEnergy += ( target instanceof StructureStorage ) ? _.sum ( workersInThisRoom[ i ].carry ) : workersInThisRoom[ i ].carry[ RESOURCE_ENERGY ];
                 }
             }
+
+            //console.log ( creep.name+':', target, 'needs', neededEnergy, ' : promised', promisedEnergy);
 
             return ( neededEnergy > promisedEnergy )
         }
@@ -158,7 +172,7 @@ var roleHarvester = {
 
         function CheckDroppedResources ( )
         {
-            var droppedResources =  _sortBy ( creep.room.find ( FIND_DROPPED_RESOURCES ), ( d ) => creep.pos.getRangeTo ( d ) );
+            var droppedResources =  _.sortBy ( homeRoom.find ( FIND_DROPPED_RESOURCES ), ( d ) => creep.pos.getRangeTo ( d ) );
 
             if ( droppedResources.length )
             {
@@ -166,6 +180,7 @@ var roleHarvester = {
                 {
                     if ( TargetCanUseAnotherGatherer ( droppedResources[ i ] ) )
                     {
+                        //console.log (creep.name+':', 'found a dropped resource target');
                         return droppedResources[ i ];
                     }
                 }
@@ -175,7 +190,7 @@ var roleHarvester = {
 
         function CheckContainers ( )
         {
-            var containers =  _sortBy ( creep.room.find ( FIND_STRUCTURES, function ( c ){ c.structureType == STRUCTURE_CONTAINER && c.store[RESOURCE_ENERGY] > 0 } ), ( d ) => creep.pos.getRangeTo ( d ) );
+            var containers =  _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( c ){ return c.structureType == STRUCTURE_CONTAINER && c.store[RESOURCE_ENERGY] >= MIN_CONTAINER_ENERGY_TO_GATHER } } ), ( c ) => creep.pos.getRangeTo ( c ) );
 
             if ( containers.length )
             {
@@ -183,6 +198,7 @@ var roleHarvester = {
                 {
                     if ( TargetCanUseAnotherGatherer ( containers[ i ] ) )
                     {
+                        //console.log (creep.name+':', 'found a container target');
                         return containers[ i ];
                     }
                 }
@@ -192,9 +208,10 @@ var roleHarvester = {
 
         function CheckStorageForGathering ( )
         {
-            if ( creep.room.storage && TargetCanUseAnotherGatherer ( creep.room.storage ) )
+            if ( homeRoom.storage && TargetCanUseAnotherGatherer ( homeRoom.storage ) )
             {
-                return creep.room.storage;
+                //console.log (creep.name+':', 'found a storage target for gathering');
+                return homeRoom.storage;
             }
         }
 
@@ -203,9 +220,10 @@ var roleHarvester = {
         {
             if ( creep.getActiveBodyparts ( WORK ) )
             {
-                var energyNodes = _sortBy ( creep.room.find ( FIND_ACTIVE_SOURCES ), (n) => creep.pos.getRangeTo ( n ) );
+                var energyNodes = _.sortBy ( homeRoom.find ( FIND_ACTIVE_SOURCES ), (n) => creep.pos.getRangeTo ( n ) );
                 if ( energyNodes.length )
                 {
+                    //console.log (creep.name+':', 'found an energy node target');
                     return energyNodes[ 0 ];
                 }
             }
@@ -216,10 +234,12 @@ var roleHarvester = {
         {
             if ( currentTarget != null && TargetCanUseAnotherGatherer ( currentTarget ) )
             {
+                //console.log (creep.name+':',  'current gather target is still good');
                 return currentTarget;
             }
 
-            // WE NEED A NEW ENERGY SOURCE. USE THE FOLLOWING PRIORITY LIST
+            //if ( currentTarget != null ) console.log (creep.name+':',  'gather target',currentTarget, 'no longer good. finding a new one');
+            // WE NEED A NEW ENERGY SOURCE. USE THE FOLLOWINGPRIORITY LIST
             // 1. DROPPED ENERGY
             // 2. CONTAINERS
             // 3. STORAGE
@@ -243,10 +263,10 @@ var roleHarvester = {
 
 
         function Gather ( )
-        {                        
-            // IF WE'RE ALREADY FULL OF ENERGY, START THE TRANSFER
-            if ( _sum ( creep.carry ) == creep.carryCapacity )
+        {                   
+            if ( _.sum ( creep.carry ) == creep.carryCapacity )
             {
+                //console.log (creep.name+':',  'creep is full. Transitioning to TRANSFERRING');
                 creep.memory.currentTargetId = null;
                 return Transfer ( );
             }
@@ -279,15 +299,15 @@ var roleHarvester = {
 
                 if ( result == ERR_NOT_IN_RANGE )
                 {
-                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#ffffff' } } );
+                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#ff0000', opacity: .8 } } );
                     if ( result < 0 )
                     {
-                        console.log ( 'Error', result, 'returned on attempt to move' );
+                        console.log (creep.name+':',  'Error', result, 'returned on attempt to move' );
                     }
                 }
-                else if ( result < 0)
+                else if ( result != ERR_BUSY && result < 0)
                 {
-                    console.log ( 'Error', result, ' returned when attempting to obtain energy from', target );
+                    console.log (creep.name+':',  'Error', result, ' returned when attempting to obtain energy from', target );
                 }
             }
 
@@ -297,7 +317,7 @@ var roleHarvester = {
 
         function CheckSpawns ( )
         {
-            var spawns = _.sortBy ( creep.room.find ( FIND_STRUCTURES, function ( s ){ s.structureType == STRUCTURE_SPAWN && s.energy < s.energyCapacity }  ), (s) => creep.pos.getRangeTo ( s ) );
+            var spawns = _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( s ){ return s.structureType == STRUCTURE_SPAWN && s.energy < s.energyCapacity } } ), (s) => creep.pos.getRangeTo ( s ) );
 
             if ( spawns.length )
             {
@@ -305,6 +325,7 @@ var roleHarvester = {
                 {
                     if ( TargetCanUseAnotherTransporter ( spawns[ i ] ) )
                     {
+                        //console.log (creep.name+':', 'found a spawn target');
                         return spawns[ i ];
                     }
                 }
@@ -314,7 +335,7 @@ var roleHarvester = {
 
         function CheckExtensions ( )
         {
-            var extensions = _.sortBy ( creep.room.find ( FIND_STRUCTURES, function ( s ){ s.structureType == STRUCTURE_EXTENSION && s.energy < s.energyCapacity }  ), (s) => creep.pos.getRangeTo ( s ) );
+            var extensions = _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( s ){ return s.structureType == STRUCTURE_EXTENSION && s.energy < s.energyCapacity } }  ), (s) => creep.pos.getRangeTo ( s ) );
 
             if ( extensions.length )
             {
@@ -322,6 +343,7 @@ var roleHarvester = {
                 {
                     if ( TargetCanUseAnotherTransporter ( extensions[ i ] ) )
                     {
+                        //console.log (creep.name+':', 'found an extension target');
                         return extensions[ i ];
                     }
                 }
@@ -331,7 +353,7 @@ var roleHarvester = {
 
         function CheckTowers ( )
         {
-            var towers = _.sortBy ( creep.room.find ( FIND_STRUCTURES, function ( s ){ s.structureType == STRUCTURE_TOWER && s.energy < s.energyCapacity }  ), (s) => creep.pos.getRangeTo ( s ) );
+            var towers = _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( s ){ return s.structureType == STRUCTURE_TOWER && s.energy < s.energyCapacity } } ), (s) => creep.pos.getRangeTo ( s ) );
 
             if ( towers.length )
             {
@@ -339,6 +361,7 @@ var roleHarvester = {
                 {
                     if ( TargetCanUseAnotherTransporter ( towers[ i ] ) )
                     {
+                        //console.log (creep.name+':', 'found a tower target');
                         return towers[ i ];
                     }
                 }
@@ -348,9 +371,10 @@ var roleHarvester = {
 
         function CheckStorageForTransporting ( )
         {
-            if ( creep.room.storage && TargetCanUseAnotherTransporter ( creep.room.storage ) )
+            if ( homeRoom.storage && TargetCanUseAnotherTransporter ( homeRoom.storage ) )
             {
-                return creep.room.storage;
+                //console.log (creep.name+':', 'found a storage target for transporting', homeRoom.storage );
+                return homeRoom.storage;
             } 
         }
 
@@ -359,8 +383,11 @@ var roleHarvester = {
         {
             if ( currentTarget != null && TargetCanUseAnotherTransporter ( currentTarget ) )
             {
+                //console.log (creep.name+':',  'current transfer target still good');
                 return currentTarget;
             }
+
+            //if ( currentTarget != null ) console.log (creep.name+':',  'current transfer target',currentTarget,'no good. finding a new one');
 
             // WE NEED A NEW TRANSFER TARGET. USE THE FOLLOWING PRIORITY LIST
             // 1. SPAWNS
@@ -370,7 +397,7 @@ var roleHarvester = {
 
             var transferTarget = CheckSpawns ( );
 
-            if ( transferTarget ) return transferTaret;
+            if ( transferTarget ) return transferTarget;
 
             transferTarget = CheckExtensions ( );
 
@@ -380,18 +407,17 @@ var roleHarvester = {
 
             if ( transferTarget ) return transferTarget;
 
-            transferTaret = CheckStorageForTransporting ( );
+            transferTarget = CheckStorageForTransporting ( );
 
             return transferTarget;            
         }
 
 
-
-
         function Transfer ( )
         {
-            if ( creep.carry.energy == 0 )
+            if ( _.sum ( creep.carry ) == 0 )
             {
+                //console.log ( creep.name+':', 'creep is empty. not attempting to find transfer target');
                 creep.memory.currentTargetId = null;
                 return Gather ( );
             }
@@ -400,8 +426,9 @@ var roleHarvester = {
 
             if ( target == null )
             {
-                if ( creep.carry.energy < creep.carryCapacity * MIN_CURRENT_ENERGY_PCT_TO_TRANSFER )
+                if ( creep.carry.energy < creep.carryCapacity * MAX_CURRENT_ENERGY_PCT_TO_GATHER )
                 {
+                    creep.memory.currentTargetId = null;
                     return Gather ( );
                 }
             }
@@ -413,24 +440,38 @@ var roleHarvester = {
 
                 if ( target instanceof StructureStorage )
                 {
-                    result = transfer ( )
+                    var resourceKey = _.findKey ( creep.carry, function (r) { return r > 0 } );
+                    result = creep.transfer ( target, resourceKey );
+                }
+                else
+                {
+                    result = creep.transfer ( target, RESOURCE_ENERGY );
                 }
 
                 if ( result == ERR_NOT_IN_RANGE )
                 {
-                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#ffffff' } } );
+                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#00FF00', opacity: .8 } } );
                     if ( result < 0 )
                     {
-                        console.log ( 'Error', result, 'returned on attempt to move' );
+                        console.log (creep.name+':',  'Error', result, 'returned on attempt to move' );
                     }
                 }
                 else if ( result < 0)
                 {
-                    console.log ( 'Error', result, ' returned when attempting to obtain energy from', target );
+                    console.log (creep.name+':',  'Error', result, ' returned when attempting to transfer resources to', target );
                 }
             }
 
             return STATE.TRANSFERRING;
+        }
+
+
+        function ValidateHomeRoom ( homeRoomId )
+        {
+            if ( homeRoomId == undefined || homeRoomId == null ) return creep.room;
+
+            return Game.getObjectById ( homeRoomId );
+            
         }
 
 
@@ -443,30 +484,12 @@ var roleHarvester = {
 
         
         // MAIN CODE 
+        const homeRoom = ValidateHomeRoom ( creep.memory.homeRoomId );
+
         var currentState = ValidateCurrentState ( creep.memory.currentState );
 
         creep.memory.currentState = STATE_MACHINE[ currentState ] ( );
-        
-
-
-        else 
-        {
-            // CREATE AN ARRAY OF POTENTIAL ENERGY DUMPS IN ORDER OF PRIORITY
-            // 1. SPAWN POINT
-            // 2. EXTENSIONS
-            // 3. TOWERS
-            // 4. STORAGE
-
-            var moving = false;
-
-            
-            
-            if ( moving == false )
-            {
-                creep.moveTo(Game.spawns['Base'], {visualizePathStyle: {stroke: '#FFE56D', opacity: 0.6}});
-            }
-        }
     }
 };
 
-module.exports = roleHarvester;
+module.exports = roleWorker;

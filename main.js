@@ -27,13 +27,16 @@
 
 */
 
-var minNumberHarvesters = 2;
-var minNumberUpgraders = 3;
-var minNumberBuilders = 2;
+var testWorker = true;
+
+var minNumberHarvesters = 0;
+var minNumberUpgraders = 2;
+var minNumberBuilders = 1;
 var minNumberAttackers = 0;
 var minNumberMiners = 2;
-var minNumberSnipers = 4;
+var minNumberSnipers = 3;
 var minNumberClaimers = 1;
+var minNumberWorkers = 2;
 
 var adjacentRooms = 
 {
@@ -51,6 +54,7 @@ var roleAttacker = require('role.attacker');
 var roleMiner = require('role.miner');
 var roleSniper = require('role.sniper');
 var roleClaimer = require ('role.claimer');
+var roleWorker = require ('role.worker');
 
 var S_HARVESTER = 'harvester';
 var S_UPGRADER = 'upgrader';
@@ -59,6 +63,7 @@ var S_ATTACKER = 'attacker';
 var S_MINER = 'miner';
 var S_SNIPER = 'sniper';
 var S_CLAIMER = 'claimer';
+var S_WORKER = 'worker';
 
 var lastEnergySource = 0;
 
@@ -109,12 +114,17 @@ module.exports.loop = function ()
             {
                 roleClaimer.run(creep);
             }
+            else if ( creep.memory.role == S_WORKER)
+            {
+                roleWorker.run ( creep );
+            }
         }
     }
     
        
     function SpawnNewCreepIfNeeded ( )
     {
+        // jmm: this can be optimized at some point
         var currentHarvesters = _.sum(Game.creeps, (c)=>c.memory.role == S_HARVESTER);
         var currentUpgraders = _.sum(Game.creeps, (c)=>c.memory.role == S_UPGRADER);
         var currentBuilders = _.sum(Game.creeps, (c)=>c.memory.role == S_BUILDER);
@@ -122,27 +132,34 @@ module.exports.loop = function ()
         var currentMiners = _.sum(Game.creeps, (c)=>c.memory.role == S_MINER);
         var currentSnipers = _.sum(Game.creeps, (c)=>c.memory.role == S_SNIPER );     
         var currentClaimers = _.sum(Game.creeps, (c)=>c.memory.role == S_CLAIMER);
+        var currentWorkers = _.sum(Game.creeps, (c)=>c.memory.role == S_WORKER);
     
         for(var name in Game.creeps) 
         {
             var creep = Game.creeps[name];
             var role = creep.memory.role;
     
-            if ( role != S_HARVESTER && role != S_BUILDER && role != S_UPGRADER && role != S_ATTACKER && role != S_MINER && role != S_SNIPER && role != S_CLAIMER )
+            if ( role != S_HARVESTER && role != S_BUILDER && role != S_UPGRADER && role != S_ATTACKER && role != S_MINER && role != S_SNIPER && role != S_CLAIMER && role != 'worker')
             {
                 console.log ( creep.name, 'has an unknown role:', role);
             }
         }
         
-        console.log('H:'+ currentHarvesters + ' | U:'+ currentUpgraders + ' | B:' + currentBuilders + ' | S:' + currentSnipers + ' | M:' + currentMiners );
+        console.log('W:'+ currentWorkers+' | H:'+ currentHarvesters + ' | U:'+ currentUpgraders + ' | B:' + currentBuilders + ' | S:' + currentSnipers + ' | M:' + currentMiners );
         
         var spawn1 = Game.spawns['Base'];
         var makeBigUnits = ( spawn1.room.energyCapacityAvailable >= 500 );
         var readyForMiners = spawn1.room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_CONTAINER } } ).length;
+
+        
     
         if ( spawn1.spawning )
         {
             spawn1.room.visual.text(spawn1.spawning.name, spawn1.pos.x + 1, spawn1.pos.y, {align: 'left', opacity: 0.8});
+        }
+        else if ( currentWorkers < minNumberWorkers )
+        {
+            roleWorker.spawn ( spawn1 );
         }
         else if ( currentHarvesters < minNumberHarvesters )
         {        
