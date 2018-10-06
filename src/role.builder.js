@@ -1,6 +1,6 @@
 var roleBuilder = {
     
-    spawn: function ( spawnPoint )
+    spawn: function ( spawnPoint, targetRoomName,  )
     {
         var body;
         var energyAmount = spawnPoint.room.energyCapacityAvailable;
@@ -50,7 +50,7 @@ var roleBuilder = {
             body = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
         }
 
-        spawnPoint.createCreep ( body, 'builder'+Game.time.toString(), { role:'builder', status:'harvesting', energySource: 0 } );
+        spawnPoint.createCreep ( body, 'builder'+Game.time.toString(), { role:'builder', status:'harvesting', energySource: 0, targetRoom: targetRoomName } );
     },
     
     /** @param {Creep} creep **/
@@ -80,13 +80,14 @@ var roleBuilder = {
             }
             else
             {
-                var r = Game.getObjectById('5bb4e7ede6fda6257a45a6fd');
-                if(creep.repair(r) == ERR_NOT_IN_RANGE) 
+                if ( creep.room.name != creep.memory.targetRoom )
                 {
-                    creep.moveTo(r, {visualizePathStyle: {stroke: '#ffaa00'}});
+                    const exitDir = creep.room.findExitTo(creep.memory.targetRoom);
+                    const exit = creep.pos.findClosestByRange(exitDir);
+                    creep.moveTo(exit, { visualizePathStyle: {stroke: '#ffffff'} });
                     return;
                 }
-                
+
                 var repairTargets = creep.room.find(FIND_STRUCTURES, { filter:  (site) => site.hits < site.hitsMax && site.structureType != STRUCTURE_WALL && site.structureType != STRUCTURE_RAMPART} );
                 
                 if(repairTargets.length) 
@@ -116,14 +117,14 @@ var roleBuilder = {
         {
 
             // FIRST SEE IF WE HAVE A STORAGE UNIT IN THE ROOM
-            if ( creep.room.storage )
+            if ( Game.spawns['Base'].room.storage )
             {
-                if ( creep.withdraw( creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE )
+                if ( creep.withdraw( Game.spawns['Base'].room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE )
                 {
-                    creep.moveTo(creep.room.storage, {visualizePathStyle: {stroke: '#ffffff'}});
+                    creep.moveTo(Game.spawns['Base'].room.storage, {visualizePathStyle: {stroke: '#ffffff'}});
                     return;
                 }
-            }
+            }            
 
             var containers = creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}});
 

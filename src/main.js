@@ -11,30 +11,12 @@
 // Consider having transporters move energy between containers
 
 
-/*
-    GAME FLOW
-    1. 
-
-
-    1. Spawn 2 transports [WORK, CARRY, MOVE]
-        GET ENERGY
-        CARRY ENERGY
-        TRANSFER ENERGY
-
-
-
-
-
-*/
-
-var testWorker = true;
-
 var minNumberHarvesters = 0;
-var minNumberUpgraders = 2;
+var minNumberUpgraders = 3;
 var minNumberBuilders = 1;
 var minNumberAttackers = 0;
 var minNumberMiners = 2;
-var minNumberSnipers = 3;
+var minNumberSnipers = 4;
 var minNumberClaimers = 1;
 var minNumberWorkers = 2;
 
@@ -148,7 +130,6 @@ module.exports.loop = function ()
         console.log('W:'+ currentWorkers+' | H:'+ currentHarvesters + ' | U:'+ currentUpgraders + ' | B:' + currentBuilders + ' | S:' + currentSnipers + ' | M:' + currentMiners );
         
         var spawn1 = Game.spawns['Base'];
-        var makeBigUnits = ( spawn1.room.energyCapacityAvailable >= 500 );
         var readyForMiners = spawn1.room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_CONTAINER } } ).length;
 
         
@@ -175,7 +156,7 @@ module.exports.loop = function ()
         }
         else if ( currentBuilders < minNumberBuilders )
         {
-            roleBuilder.spawn ( spawn1 );
+            roleBuilder.spawn ( spawn1, spawn1.room );
         }
         else if ( currentAttackers < minNumberAttackers )
         {
@@ -206,7 +187,7 @@ module.exports.loop = function ()
         var towers = Game.spawns['Base'].room.find( FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
         towers.forEach(tower => tower.attack(hostiles[0]));
     }
-    /*else
+    else if ( Game.spawns['Base'].room.storage.store[ RESOURCE_ENERGY ] > 10000 )
     {
         var repairs = Game.spawns['Base'].room.find(FIND_STRUCTURES, { filter: (site) => site.hits < site.hitsMax  && site.structureType != STRUCTURE_WALL } );
         if ( repairs.length )
@@ -214,6 +195,6 @@ module.exports.loop = function ()
             var towers = Game.spawns['Base'].room.find( FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
             towers.forEach(tower => tower.repair(repairs[0]));
         }
-    }*/
+    }
     
 }

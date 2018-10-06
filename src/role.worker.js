@@ -119,13 +119,9 @@ var roleWorker = {
         // WILL BEGIN TO GATHER MORE ENERGY IF WE HAVE LESS THAN 
         // THIS PERCENTAGE OF OUR TOTAL CARRY CAPACITY.
         const MAX_CURRENT_ENERGY_PCT_TO_GATHER = .50;
+       
 
-        // MINIMUM AMOUNT OF ENERGY A CONTAINER MUST HAVE
-        // IN ORDER FOR US TO GATHER FROM IT
-        const MIN_CONTAINER_ENERGY_TO_GATHER = 50;
-
-        
-
+        const MIN_CONTAINER_ENERGY_TO_GATHER = 500;
 
         
         function TargetCanUseAnotherGatherer ( target )
@@ -190,7 +186,8 @@ var roleWorker = {
 
         function CheckContainers ( )
         {
-            var containers =  _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( c ){ return c.structureType == STRUCTURE_CONTAINER && c.store[RESOURCE_ENERGY] >= MIN_CONTAINER_ENERGY_TO_GATHER } } ), ( c ) => creep.pos.getRangeTo ( c ) );
+            var containerEnergyRequired = ( creep.room.storage && creep.room.storage.store [ RESOURCE_ENERGY ] > 0 ) ? MIN_CONTAINER_ENERGY_TO_GATHER  : 0;
+            var containers =  _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( c ){ return c.structureType == STRUCTURE_CONTAINER && c.store[RESOURCE_ENERGY] >= containerEnergyRequired } } ), ( c ) => creep.pos.getRangeTo ( c ) );
 
             if ( containers.length )
             {
@@ -299,7 +296,7 @@ var roleWorker = {
 
                 if ( result == ERR_NOT_IN_RANGE )
                 {
-                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#ff0000', opacity: .8 } } );
+                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#ffffff', opacity: .8 } } );
                     if ( result < 0 )
                     {
                         console.log (creep.name+':',  'Error', result, 'returned on attempt to move' );
@@ -353,7 +350,7 @@ var roleWorker = {
 
         function CheckTowers ( )
         {
-            var towers = _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( s ){ return s.structureType == STRUCTURE_TOWER && s.energy < s.energyCapacity } } ), (s) => creep.pos.getRangeTo ( s ) );
+            var towers = _.sortBy ( homeRoom.find ( FIND_STRUCTURES, { filter: function ( s ){ return ( s.structureType == STRUCTURE_TOWER && s.energy < ( s.energyCapacity * .8 ) ) } } ), (s) => creep.pos.getRangeTo ( s ) );
 
             if ( towers.length )
             {
@@ -389,11 +386,20 @@ var roleWorker = {
 
             //if ( currentTarget != null ) console.log (creep.name+':',  'current transfer target',currentTarget,'no good. finding a new one');
 
+            // WE HAVE NO ENERGY LEFT, BUT WE HAVE OTHER RESOURCE TO DUMP.
+            // HEAD STRAIGHT TO STORAGE
+            if (  _.sum ( creep.carry ) && creep.carry[ RESOURCE_ENERGY ] == 0 )
+            {
+                transferTarget = CheckStorageForTransporting ( );
+                if ( transferTarget ) return transferTarget;
+            }
+
+
             // WE NEED A NEW TRANSFER TARGET. USE THE FOLLOWING PRIORITY LIST
             // 1. SPAWNS
             // 2. EXTENSIONS
             // 3. TOWERS
-            // 4. STORAGE
+            // 4. STORAGE            
 
             var transferTarget = CheckSpawns ( );
 
@@ -450,7 +456,7 @@ var roleWorker = {
 
                 if ( result == ERR_NOT_IN_RANGE )
                 {
-                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#00FF00', opacity: .8 } } );
+                    result = creep.moveTo ( target, { visualizePathStyle: { stroke: '#FFE56D', opacity: .8 } } );
                     if ( result < 0 )
                     {
                         console.log (creep.name+':',  'Error', result, 'returned on attempt to move' );

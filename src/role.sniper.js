@@ -3,7 +3,7 @@ var roleSniper =
     spawn: function ( spawnPoint )
     {
         var energySource1 =  { energyRoom: 'E58S7', source: '59bbc5bb2052a716c3ce9f20', snipers: [] };
-        //var energySource2 =  { energyRoom: 'E59S8', source: '59bbc5cd2052a716c3cea0b1', snipers: [] };
+        var energySource2 =  { energyRoom: 'E58S8', source: '59bbc5bc2052a716c3ce9f22', snipers: [] };
         //var energySource3 =  { energyRoom: 'E58S6', source: '59bbc5bb2052a716c3ce9f1d', snipers: [] };
 
         var currentSnipers = _.filter ( Game.creeps, ( c ) => c.memory.role == 'sniper' );
@@ -14,10 +14,10 @@ var roleSniper =
             {
                 energySource1.snipers.push ( currentSnipers[i] );
             }
-            //else if ( currentSnipers[i].memory.energySource == energySource2.source )
-            //{
-            //   energySource2.snipers.push ( currentSnipers[i] );
-            //}
+            else if ( currentSnipers[i].memory.energySource == energySource2.source )
+            {
+              energySource2.snipers.push ( currentSnipers[i] );
+            }
             //else if ( currentSnipers[i].memory.energySource == energySource3.source )
             //{
             //   energySource3.snipers.push ( currentSnipers[i] );
@@ -32,16 +32,16 @@ var roleSniper =
         var newSniperTargetRoom;
         var newSniperTargetEnergy;
         var body = [ WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE];
-        if ( energySource1.snipers.length < 3 )
+        if ( energySource1.snipers.length < 2 )
         {
             newSniperTargetRoom = energySource1.energyRoom;
             newSniperTargetEnergy = energySource1.source;
         }
-        //else if ( energySource2.snipers.length < 1 )
-    //    {
-     //       newSniperTargetRoom = energySource2.energyRoom;
-      //      newSniperTargetEnergy = energySource2.source;
-    //    }
+        else if ( energySource2.snipers.length < 2 )
+        {
+            newSniperTargetRoom = energySource2.energyRoom;
+            newSniperTargetEnergy = energySource2.source;
+        }
         /*else
         {
             newSniperTargetRoom = energySource3.energyRoom;
@@ -72,10 +72,6 @@ var roleSniper =
                     if ( result == ERR_NOT_IN_RANGE )
                     {
                         creep.moveTo ( target, {visualizePathStyle: {stroke: '#ffffff'}} );
-                    }
-                    else if ( result != 0 )
-                    {
-                        console.log(result);
                     }
                 }
             }
