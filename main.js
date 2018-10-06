@@ -12,7 +12,7 @@
 
 
 var minNumberHarvesters = 0;
-var minNumberUpgraders = 3;
+var minNumberUpgraders = 2;
 var minNumberBuilders = 1;
 var minNumberAttackers = 0;
 var minNumberMiners = 2;

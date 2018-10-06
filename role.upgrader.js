@@ -63,12 +63,12 @@ var roleUpgrader = {
         if(creep.memory.status == 'upgrading' && creep.carry.energy == 0) 
         {
             creep.memory.status = 'harvesting';
-            creep.say('🔄 harvest');
+            creep.say('ð harvest');
         }
         else if(creep.memory.status != 'upgrading' && creep.carry.energy == creep.carryCapacity) 
         {
             creep.memory.status = 'upgrading';
-            creep.say('⚡ upgrade');
+            creep.say('â¡ upgrade');
         }
 
         if(creep.memory.status == 'upgrading') 
